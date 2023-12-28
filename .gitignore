@@ -1,0 +1,12 @@
+# 文件
+.idea
+*.iml
+*.log
+
+# 目录
+target
+logs
+sql
+
+# 隐私
+src/main/resources/application-dev.yml

@@ -8,6 +8,7 @@ import com.motiedsune.system.bots.service.IBotSender;
 import com.motiedsune.system.bots.update.IUpdateCommand;
 import jakarta.annotation.Resource;
 import jakarta.validation.constraints.NotNull;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
  * @author MoTIEdsuNe
  * @date 2023-12-21 星期四
  */
+@Slf4j
 @Service
 public class UpdateCommandDoingWhat implements IUpdateCommand {
 
@@ -73,7 +75,7 @@ public class UpdateCommandDoingWhat implements IUpdateCommand {
             String number;
             if (StringUtils.equals(strings[1], "list")) {
                 number = "10";
-           } else {
+            } else {
                 StringBuilder sb = new StringBuilder();
                 for (char c : strings[1].toCharArray()) {
                     if (Character.isDigit(c)) {
@@ -100,31 +102,51 @@ public class UpdateCommandDoingWhat implements IUpdateCommand {
         if (strings.length >= 3 && add && Strings.isNotBlank(command)) {
             List<String> added = new ArrayList<>();
             List<String> exited = new ArrayList<>();
-            for (int i = 2; i < strings.length; i++) {
-                String args = strings[i].trim();
-                Long count = whatService.lambdaQuery()
-                        .eq(BotDoWhat::getType, command)
-                        .eq(BotDoWhat::getStats, 0)
-                        .eq(BotDoWhat::getName, args)
-                        .count();
-                if (count == 0) {
-                    whatService.save(BotDoWhat.builder()
-                            .type(command)
-                            .name(args)
-                            .userId(user.getId())
-                            .stats(0)
-                            .build());
-                    added.add(args);
-                } else {
-                    exited.add(args);
+            List<String> notSatisfied = new ArrayList<>();
+            {
+//                String pattern = "[^\\u4E00-\\u9FA5\\uF900-\\uFA2D\\w]+";
+                String pattern = "[^\\p{InCJKUnifiedIdeographs}\\p{IsHan}\\p{IsLatin}\\p{IsHiragana}\\p{IsKatakana}]+";
+                Pattern regex = Pattern.compile(pattern);
+                List<String> datalist = new ArrayList<>();
+                for (int i = 2; i < strings.length; i++) {
+                    String data = strings[i];
+                    Matcher matcher = regex.matcher(data);
+                    // 判断是否匹配到非中文符号
+                    if (matcher.find()) {
+                        log.warn("【过滤】字符串中包含非中、英、日文符号: {}", data);
+                        notSatisfied.add(data);
+                    } else {
+                        datalist.add(data);
+                    }
                 }
+                if (!datalist.isEmpty()) {
+                    List<BotDoWhat> dblist = whatService.lambdaQuery()
+                            .eq(BotDoWhat::getType, command)
+                            .eq(BotDoWhat::getStats, 0)
+                            .in(BotDoWhat::getName, datalist)
+                            .list();
+                    exited = dblist.stream().map(BotDoWhat::getName).toList();
+                    datalist.removeAll(exited);
+                    added = datalist;
+                }
+                if (!added.isEmpty()) {
+                    List<BotDoWhat> collect = added.stream().map(d -> BotDoWhat.builder()
+                            .type(command).name(d).userId(user.getId()).stats(0).build()).toList();
+                    whatService.saveBatch(collect);
+                }
+
             }
+
             text = new StringBuilder();
             if (!added.isEmpty()) {
                 text.append("```新增\n").append(String.join(", ", added)).append("```").append("\n");
             }
             if (!exited.isEmpty()) {
                 text.append("```已存在\n").append(String.join(", ", exited)).append("```").append("\n");
+            }
+            if (!exited.isEmpty()) {
+                text.append("```不满足条件\n").append(notSatisfied.stream().map(d ->
+                        baseService.formatMarkdownV2(d)).collect(Collectors.joining(", "))).append("```").append("\n");
             }
         }
 

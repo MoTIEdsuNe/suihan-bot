@@ -4,6 +4,7 @@ import com.motiedsune.system.bots.model.entity.BotUser;
 import com.motiedsune.system.bots.scheduler.BotDeleteMessageJob;
 import com.motiedsune.system.bots.service.IBotBaseService;
 import com.motiedsune.system.bots.service.IBotSender;
+import com.motiedsune.system.bots.utils.MarkdownUtils;
 import com.motiedsune.system.bots.utils.QuartzSchedulerUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -139,14 +140,16 @@ public class BotBaseServiceImpl implements IBotBaseService {
         String firstName = Strings.isNotBlank(replyUser.getFirstName()) ? replyUser.getFirstName() : "";
         String lastName = Strings.isNotBlank(replyUser.getLastName()) ? replyUser.getLastName() : "";
         Long id = replyUser.getId();
-        return "[" + firstName + " " + lastName + "](tg://user?id=" + id + ")";
+//        return "[" + firstName + " " + lastName + "](tg://user?id=" + id + ")";
+        return MarkdownUtils.create().inlineUser(firstName + " " + lastName, id).build().toString();
     }
 
     @Override
     public String getUserInfo(BotUser user) {
         String firstName = Strings.isNotBlank(user.getFirstName()) ? user.getFirstName() : "";
         Long id = user.getId();
-        return "[" + firstName + "](tg://user?id=" + id + ")";
+//        return "[" + firstName + "](tg://user?id=" + id + ")";
+        return MarkdownUtils.create().inlineUser(firstName, id).build().toString();
     }
 
 
@@ -205,27 +208,5 @@ public class BotBaseServiceImpl implements IBotBaseService {
         String text = this.formatMarkdownV2(msg);
         sendMessage.setText(text);
         return sendMessage;
-    }
-
-    @Override
-    public List<String> passSymbols(){
-        String[] symbols = {
-                "_",
-                "*",
-                "[", "]",
-                "(", ")",
-                "{", "}",
-                "~",
-                "`",
-                ">",
-                "#",
-                "+",
-                "-",
-                "=",
-                "|",
-                ".",
-                "!"
-        };
-        return new ArrayList<>(List.of(symbols));
     }
 }

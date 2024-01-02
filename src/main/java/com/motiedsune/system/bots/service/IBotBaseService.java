@@ -58,6 +58,4 @@ public interface IBotBaseService {
     SendMessage createMarkdownMessage(Long chatId, Integer messageId, String msg);
 
     EditMessageText createEditMarkdownMessage(Long chatId, Integer messageId, String msg);
-
-    List<String> passSymbols();
 }

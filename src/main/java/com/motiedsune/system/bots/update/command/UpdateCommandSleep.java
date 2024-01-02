@@ -8,6 +8,7 @@ import com.motiedsune.system.bots.model.entity.BotUser;
 import com.motiedsune.system.bots.model.enums.Status;
 import com.motiedsune.system.bots.scheduler.BotSleepJob;
 import com.motiedsune.system.bots.service.*;
+import com.motiedsune.system.bots.utils.MarkdownUtils;
 import com.motiedsune.system.bots.utils.QuartzSchedulerUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -66,11 +67,14 @@ public class UpdateCommandSleep implements IUpdateCommand {
         Integer messageId = message.getMessageId();
 
         if (!message.isReply()) {
-            baseService.sendMessage(chatId, messageId, "要催谁睡觉觉呢？\n\n" +
-                    "用法：`/sleep` + 回复的内容（可留空），\n" +
-                    "例如：`{self}` 向 `{friend}` 道晚安\n\n" +
-                    "参数: `{self}`:自己， `{friend}`:对方\n" +
-                    "", 30);
+            baseService.sendMessage(chatId, messageId, """
+                    要催谁睡觉觉呢？
+
+                    用法：`/sleep` \\+ 回复的内容（可留空），
+                    例如：`\\{self\\}` 向 `\\{friend\\}` 道晚安
+                    
+                    参数: `\\{self\\}`:自己， `\\{friend\\}`:对方
+                    """, 30);
             return false;
         }
         Message replyToMessage = message.getReplyToMessage();
@@ -79,8 +83,7 @@ public class UpdateCommandSleep implements IUpdateCommand {
             baseService.sendMessage(chatId, messageId, "不可以催 bot 睡觉啦！", 30);
             return false;
         }
-        String userInfo = baseService.getUserInfo(replyUser);
-        Boolean edited = Boolean.FALSE;
+        boolean edited = Boolean.FALSE;
         // 首先查询A对B是否已有配置 sleep
         BotSleep sleep = sleepService.findSleep(user.getId(), replyUser.getId());
         StringBuilder text = new StringBuilder();
@@ -120,7 +123,8 @@ public class UpdateCommandSleep implements IUpdateCommand {
         }
         buildStatusInfo(sleep, text);
         InlineKeyboardMarkup markup = buttonBase(sleep);
-        SendMessage sendMessage = baseService.createMarkdownMessage(chatId, messageId, text.toString());
+        String msg = MarkdownUtils.create().format(text).build().toString();
+        SendMessage sendMessage = baseService.createMarkdownMessage(chatId, messageId, msg);
         sendMessage.setReplyMarkup(markup);
         sendMessage.disableNotification();
         sendMessage.enableNotification();
@@ -193,12 +197,16 @@ public class UpdateCommandSleep implements IUpdateCommand {
             String fromName = fromUser != null ? baseService.getUserInfo(fromUser) : "";
             String toName = baseService.getUserInfo(replyUser);
             String sleepMsg = Strings.isNotBlank(sleep.getMsg()) ? sleep.getMsg() : "{friend} 您的好朋友 {self} 真挚的提醒您 ~ ; 晚安时间到了，该休息了，做个好梦哦！";
-            sleepMsg = sleepMsg.replace("{friend}", "{1}").replace("{self}", "{0}");
+            sleepMsg = MarkdownUtils.formatMarkdownV2(sleepMsg);
+            sleepMsg = sleepMsg.replace("\\{friend\\}", "{1}").replace("\\{self\\}", "{0}");
             String msg = "喵星晚安协会提醒您：\n" + MessageFormat.format(sleepMsg, fromName, toName);
-
             String timeZoneStr = Strings.isNotBlank(sleep.getTimeZone()) ? sleep.getTimeZone().replace("UTC", "GMT") : "GMT+8:00";
             timeZoneStr = timeZoneStr.contains("GMT") ? timeZoneStr : "GMT+8:00";
             TimeZone timeZone = TimeZone.getTimeZone(timeZoneStr);
+            if(true){
+                baseService.sendMessage(chatId,messageId,msg,30);
+                return null;
+            }
             QuartzSchedulerUtils.create(
                             () ->
                                     JobBuilder.newJob(BotSleepJob.class)
@@ -367,7 +375,8 @@ public class UpdateCommandSleep implements IUpdateCommand {
         if (edited) {
             if (text.isEmpty()) buildStatusInfo(sleep, text);
             if (markup == null) markup = buttonBase(sleep);
-            EditMessageText editMessage = baseService.createEditMarkdownMessage(chatId, messageId, text.toString());
+            String msg = MarkdownUtils.create().format(text).build().toString();
+            EditMessageText editMessage = baseService.createEditMarkdownMessage(chatId, messageId, msg);
             editMessage.setReplyMarkup(markup);
             sender.sender(editMessage);
         }

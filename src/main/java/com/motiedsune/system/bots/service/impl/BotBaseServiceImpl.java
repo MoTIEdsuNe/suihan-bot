@@ -140,7 +140,6 @@ public class BotBaseServiceImpl implements IBotBaseService {
         String firstName = Strings.isNotBlank(replyUser.getFirstName()) ? replyUser.getFirstName() : "";
         String lastName = Strings.isNotBlank(replyUser.getLastName()) ? replyUser.getLastName() : "";
         Long id = replyUser.getId();
-//        return "[" + firstName + " " + lastName + "](tg://user?id=" + id + ")";
         return MarkdownUtils.create().inlineUser(firstName + " " + lastName, id).build().toString();
     }
 
@@ -148,37 +147,9 @@ public class BotBaseServiceImpl implements IBotBaseService {
     public String getUserInfo(BotUser user) {
         String firstName = Strings.isNotBlank(user.getFirstName()) ? user.getFirstName() : "";
         Long id = user.getId();
-//        return "[" + firstName + "](tg://user?id=" + id + ")";
         return MarkdownUtils.create().inlineUser(firstName, id).build().toString();
     }
 
-
-    @Override
-    public String formatMarkdownV2(String msg) {
-        String[] symbols = {
-                "_",
-                "*",
-//                "[", "]",
-//                "(", ")",
-//                "{", "}",
-                "~",
-//                "`",
-                ">",
-                "#",
-                "+",
-                "-",
-                "=",
-                "|",
-                ".",
-                "!"
-        };
-        for (String symbol : symbols) {
-            if (msg.contains(symbol)) {
-                msg = msg.replace(symbol, "\\" + symbol);
-            }
-        }
-        return msg;
-    }
 
     @Override
     public SendMessage createMarkdownMessage(Long chatId, Integer messageId, String msg) {
@@ -191,8 +162,7 @@ public class BotBaseServiceImpl implements IBotBaseService {
             sendMessage.setReplyToMessageId(messageId);
         }
         sendMessage.setParseMode("MarkdownV2");
-        String text = this.formatMarkdownV2(msg);
-        sendMessage.setText(text);
+        sendMessage.setText(msg);
         return sendMessage;
     }
 
@@ -205,8 +175,7 @@ public class BotBaseServiceImpl implements IBotBaseService {
         sendMessage.setChatId(chatId);
         sendMessage.setMessageId(messageId);
         sendMessage.setParseMode("MarkdownV2");
-        String text = this.formatMarkdownV2(msg);
-        sendMessage.setText(text);
+        sendMessage.setText(msg);
         return sendMessage;
     }
 }

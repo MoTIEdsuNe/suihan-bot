@@ -53,7 +53,6 @@ public interface IBotBaseService {
 
     String getUserInfo(BotUser user);
 
-    String formatMarkdownV2(String msg);
 
     SendMessage createMarkdownMessage(Long chatId, Integer messageId, String msg);
 

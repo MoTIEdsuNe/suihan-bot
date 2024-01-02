@@ -44,6 +44,11 @@ public class MarkdownUtils {
         return utils;
     }
 
+    public MarkdownUtils format(StringBuilder stringBuilder){
+        this.builder.append(formatMarkdownV2(stringBuilder.toString()));
+        return this;
+    }
+
     public MarkdownUtils bold(String input) {
         input = formatMarkdownV2(input);
         this.builder.append("*").append(input).append("*");

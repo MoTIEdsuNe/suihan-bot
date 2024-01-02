@@ -2,4 +2,4 @@ spring:
   application:
     name: suihan-bots
   profiles:
-    active: prod
+    active: dev

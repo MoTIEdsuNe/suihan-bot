@@ -4,6 +4,7 @@ import com.motiedsune.system.bots.model.entity.BotUser;
 import com.motiedsune.system.bots.scheduler.BotDeleteMessageJob;
 import com.motiedsune.system.bots.service.IBotBaseService;
 import com.motiedsune.system.bots.service.IBotSender;
+import com.motiedsune.system.bots.utils.MarkdownUtils;
 import com.motiedsune.system.bots.utils.QuartzSchedulerUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -176,27 +177,5 @@ public class BotBaseServiceImpl implements IBotBaseService {
         sendMessage.setParseMode("MarkdownV2");
         sendMessage.setText(msg);
         return sendMessage;
-    }
-
-    @Override
-    public List<String> passSymbols(){
-        String[] symbols = {
-                "_",
-                "*",
-                "[", "]",
-                "(", ")",
-                "{", "}",
-                "~",
-                "`",
-                ">",
-                "#",
-                "+",
-                "-",
-                "=",
-                "|",
-                ".",
-                "!"
-        };
-        return new ArrayList<>(List.of(symbols));
     }
 }

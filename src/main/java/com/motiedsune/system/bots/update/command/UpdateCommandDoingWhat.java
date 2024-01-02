@@ -8,6 +8,7 @@ import com.motiedsune.system.bots.service.BotDoWhatService;
 import com.motiedsune.system.bots.service.IBotBaseService;
 import com.motiedsune.system.bots.service.IBotSender;
 import com.motiedsune.system.bots.update.IUpdateCommand;
+import com.motiedsune.system.bots.utils.MarkdownUtils;
 import com.motiedsune.system.bots.utils.StrUtils;
 import jakarta.annotation.Resource;
 import jakarta.validation.constraints.NotNull;
@@ -133,8 +134,11 @@ public class UpdateCommandDoingWhat implements IUpdateCommand {
                 text.append("```已存在\n").append(String.join(", ", exited)).append("```").append("\n");
             }
             if (!exited.isEmpty()) {
-                text.append("```不满足条件\n").append(notSatisfied.stream().map(d ->
-                        baseService.formatMarkdownV2(d)).collect(Collectors.joining(", "))).append("```").append("\n");
+                MarkdownUtils.create(text)
+                        .codeBlock("不满足条件", String.join(",", notSatisfied))
+                        .build();
+//                text.append("```不满足条件\n").append(notSatisfied.stream().map(d ->
+//                        baseService.formatMarkdownV2(d)).collect(Collectors.joining(", "))).append("```").append("\n");
             }
         }
 

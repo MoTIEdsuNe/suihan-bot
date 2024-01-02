@@ -203,10 +203,6 @@ public class UpdateCommandSleep implements IUpdateCommand {
             String timeZoneStr = Strings.isNotBlank(sleep.getTimeZone()) ? sleep.getTimeZone().replace("UTC", "GMT") : "GMT+8:00";
             timeZoneStr = timeZoneStr.contains("GMT") ? timeZoneStr : "GMT+8:00";
             TimeZone timeZone = TimeZone.getTimeZone(timeZoneStr);
-            if(true){
-                baseService.sendMessage(chatId,messageId,msg,30);
-                return null;
-            }
             QuartzSchedulerUtils.create(
                             () ->
                                     JobBuilder.newJob(BotSleepJob.class)
